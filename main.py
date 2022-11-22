@@ -1,6 +1,7 @@
 import sys  # sys нужен для передачи argv в QApplication
 import os  # Отсюда нам понадобятся методы для отображения содержимого директорий
 
+import numpy
 from PyQt5 import QtWidgets
 from scipy import optimize
 import numpy as np
@@ -25,7 +26,18 @@ class ExampleApp(QtWidgets.QMainWindow, MainWindow.Ui_MainWindow):
         eps = self.epsInput.value()
         r0 = self.rInput.value()
         z = self.zInput.value()
-        res = penalty(x, f1, r0, z, eps, restrictionsOfEquality[funcNum], restrictionsOfNotEquality[funcNum])
+        if funcNum < 3:
+            res = penalty(x, f1, r0, z, eps, restrictionsOfEquality[funcNum], restrictionsOfNotEquality[funcNum])
+        elif funcNum == 3:
+            res = penalty(x, f24, r0, z, eps, restrictionsOfEquality[funcNum], restrictionsOfNotEquality[funcNum])
+        elif funcNum == 4:
+            res = penalty(x, f26, r0, z, eps, restrictionsOfEquality[funcNum], restrictionsOfNotEquality[funcNum])
+        elif funcNum == 5:
+            res = penalty(x, f212, r0, z, eps, restrictionsOfEquality[funcNum], restrictionsOfNotEquality[funcNum])
+        elif funcNum == 6:
+            res = penalty(x, f216, r0, z, eps, restrictionsOfEquality[funcNum], restrictionsOfNotEquality[funcNum])
+        elif funcNum == 7:
+            res = penalty(x, Simonescu, r0, z, eps, restrictionsOfEquality[funcNum], restrictionsOfNotEquality[funcNum])
 
         r = "".join(f"{j:.{4}f}, " for j in res)[:-2]
 
@@ -116,24 +128,48 @@ def f1(x):
     return x1 ** 2 + x2 ** 2
 
 
-def f22(x):
+def f24(x):
     x1, x2 = x
-    return x1 + x2
+    return -2*x2**2 + 4*x2+x1
 
+def f28(x):
+    x1,x2 = x
+    return -8 * x1**2 + 4*x1 - x2**2-12*x2 - 7
 
+def f212(x):
+    x1, x2 = x
+    return -x1**2 - x2**2
+
+def f216(x):
+    x1, x2 = x
+    return x1**2 + x2**2
+
+def Simonescu(x):
+    x1, x2 = x
+    return 0.1*x1*x2
 
 restrictionsOfEquality = [
     [lambda x1, x2: x1 + x2 - 2],
     [lambda x1, x2: x1 - 1],
+    [],
+    [],
+    [lambda x1, x2: 3*x1+2*x2+6],
+    [lambda x1, x2: -2*x1-3*x2-6],
+    [],
     [],
     []
 ]
 
 restrictionsOfNotEquality = [
     [],
-    [lambda x1,x2: x1+x2-2],
-    [lambda x1,x2: x1+x2-2, lambda x1,x2: -x1+1],
-    [lambda x1,x2: x1*x1-x2, lambda x1,x2: -x1]
+    [lambda x1, x2: x1+x2-2],
+    [lambda x1, x2: x1+x2-2, lambda x1, x2: -x1+1],
+    [lambda x1, x2: x1*x1-x2, lambda x1, x2: -x1],
+    [],
+    [],
+    [lambda x1, x2: x1 + 2*x2 - 3, lambda x1, x2:-x1, lambda x1, x2:-x2],
+    [lambda x1, x2: x1**2 - x2**2-1, lambda x1, x2:2 - x1],
+    [lambda x1, x2: x1**2 + x2**2 - (1 + 0.2*numpy.cos(8*numpy.arctan(x1/x2)))**2]
 ]
 def main():
     app = QtWidgets.QApplication(sys.argv)  # Новый экземпляр QApplication
